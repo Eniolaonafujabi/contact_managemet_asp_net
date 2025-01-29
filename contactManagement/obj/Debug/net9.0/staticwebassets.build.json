@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "XkZNcSXQqEkj4Y5zILZ2xWFXbfSYQtxikGjETpRPKuc=",
+  "Source": "contactManagement",
+  "BasePath": "_content/contactManagement",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
