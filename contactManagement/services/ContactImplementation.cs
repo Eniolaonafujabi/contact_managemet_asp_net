@@ -8,20 +8,28 @@ namespace contactManagement.services;
 public class ContactImplementation : IContactInterface
 {
     
-    private IContactRepo _contactRepo;
+    private readonly IContactRepo _contactRepo;
 
     public ContactImplementation(IContactRepo contactRepo)
     {
-        _contactRepo = contactRepo;
+        this._contactRepo = contactRepo;
     }
 
-    public AddContactResponse CreateContact(AddContactRequest request)
+    public async Task<AddContactResponse> CreateContactAsync(AddContactRequest request)
     {
         Contact contact = new Contact();
+        bool check = await _contactRepo.FindIfContactExitForThisUserAsync(request.PhoneNumber, request.userId);
+        if (check) throw new ArgumentException("Contact already exists");
         Mapper.map(contact, request);
-        _contactRepo.AddContactAsync(contact);
+        contact = await _contactRepo.AddContactAsync(contact);
         AddContactResponse response = new AddContactResponse();
         response.Message = "Success";
+        response.PhoneNumber = contact.PhoneNumber;
+        response.Id = contact.Id;
+        response.UserId = contact.UserId;
+        response.Email = contact.Email;
+        response.FirstName = contact.FirstName;
+        response.LastName = contact.LastName;
         return response;
     }
 
@@ -39,7 +47,7 @@ public class ContactImplementation : IContactInterface
 
     public async Task<FindContactResponse> GetContactByIdAndUserId(FindContactRequest request)
     {
-        Contact contact = await _contactRepo.FindContactByIdAndUserIdAsync(request.id,request.UserId);
+        Contact contact = await _contactRepo.FindContactByIdAndUserIdAsync(request.Id,request.UserId);
         if (contact == null) throw new Exception("Contact does not exist");
         FindContactResponse response = new FindContactResponse();
         Mapper.map(contact, response);
@@ -48,9 +56,12 @@ public class ContactImplementation : IContactInterface
 
     public DeleteContactResponse DeleteContact(FindContactRequest request)
     {
-        _contactRepo.DeleteByIdAndUserIdAsync(request.id,request.UserId);
+        var result = _contactRepo.DeleteByIdAndUserIdAsync(request.Id,request.UserId);
         DeleteContactResponse response = new DeleteContactResponse();
-        response.message="Success";
+        if (result.Result)
+        {
+            response.message="Success";
+        }
         return response;
     }
 }

@@ -1,5 +1,6 @@
 using contactManagement.data.model;
 using contactManagement.data.repo;
+using contactManagement.services;
 using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,12 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient("mongodb://localhost:27017"));
+builder.Services.AddSingleton<MongoClient>(sp => new MongoClient("mongodb://localhost:27017"));
 
 builder.Services.AddScoped<IUserRepo, UserRepo>();
 
+builder.Services.AddScoped<IContactInterface, ContactImplementation>();
 builder.Services.AddScoped<IContactRepo, ContactRepo>();
-
 builder.Services.AddScoped<User>();
 
 builder.Services.AddScoped<Contact>();

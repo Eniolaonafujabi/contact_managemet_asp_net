@@ -29,8 +29,14 @@ public class ContactRepo : IContactRepo
         return await _contacts.Find(contact => contact.Id == requestId && contact.UserId == requestUserId).SingleOrDefaultAsync();
     }
 
-    public void DeleteByIdAndUserIdAsync(string requestId, string requestUserId)
+    public async  Task<bool> DeleteByIdAndUserIdAsync(string requestId, string requestUserId)
     {
-        _contacts.DeleteOne(contact => contact.Id == requestId && contact.UserId == requestUserId);
+        var result = await _contacts.DeleteOneAsync(contact => contact.Id == requestId);
+        return result.DeletedCount>0;
+    }
+
+    public async Task<bool> FindIfContactExitForThisUserAsync(string requestPhoneNumber, string requestUserId)
+    {
+        return await _contacts.Find(contact => contact.PhoneNumber == requestPhoneNumber && contact.UserId == requestUserId).AnyAsync();
     }
 }

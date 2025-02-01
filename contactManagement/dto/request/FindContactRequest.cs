@@ -4,6 +4,6 @@ public class FindContactRequest
 {
     public string UserId { get; set; } = null!;
     
-    public string id { get; set; } = null!;
+    public string Id { get; set; } = null!;
 
 }

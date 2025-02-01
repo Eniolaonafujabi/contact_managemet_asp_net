@@ -5,7 +5,7 @@ namespace contactManagement.services;
 
 public interface IContactInterface
 {
-    AddContactResponse CreateContact(AddContactRequest request);
+    Task<AddContactResponse> CreateContactAsync(AddContactRequest request);
     
     Task<List<FindContactResponse>> GetContactsByUserId(FindAllContactRequest request);
     

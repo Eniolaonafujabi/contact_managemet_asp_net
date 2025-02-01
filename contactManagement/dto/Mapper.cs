@@ -7,10 +7,12 @@ public static class Mapper
 {
     public static void map(Contact contact, AddContactRequest request)
     {
+        contact.UserId = request.userId;
         contact.FirstName = request.FirstName;
         contact.LastName = request.LastName;
         contact.Email = request.Email;
         contact.PhoneNumber = request.PhoneNumber;
+        
     }
 
     public static void map(Contact contact, FindContactResponse response)
@@ -19,5 +21,6 @@ public static class Mapper
         response.LastName = contact.LastName;
         response.PhoneNumber = contact.PhoneNumber;
         response.Email = contact.Email;
+        response.Id = contact.Id;
     }
 }
