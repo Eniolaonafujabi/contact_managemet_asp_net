@@ -2,21 +2,16 @@
 using System.Threading.Tasks;
 using contactManagement.data.model;
 using contactManagement.data.repo;
-using contactManagement.dto;
 using contactManagement.dto.request;
 using contactManagement.services;
-using JetBrains.Annotations;
 using Moq;
 using Xunit;
 
 namespace contactManagement.Tests.services;
 
-[TestSubject(typeof(ContactImplementation))]
 public class ContactImplementationTest
 {
-    
-    private ContactImplementation _contactImplementation;
-    
+    private readonly ContactImplementation _contactImplementation;
     private readonly Mock<IContactRepo> _mockDatabase;
 
     public ContactImplementationTest()
@@ -26,55 +21,130 @@ public class ContactImplementationTest
     }
 
     [Fact]
-    public void TestToCheckIfICanCreateContact()
+    public async Task TestToCheckIfICanCreateContact()
     {
-        Task<AddContactResponse> response = AddContactResponse();
-        string expected = "Success";
-        Assert.Equal(response.Result.Message,expected);
+        // Arrange
+        var request = new AddContactRequest
+        {
+            FirstName = "John",
+            LastName = "Smith",
+            Email = "johnsmith@gmail.com",
+            PhoneNumber = "0123456789",
+            userId = "1"
+        };
+
+        var contact = new Contact
+        {
+            Id = "123",
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PhoneNumber = request.PhoneNumber,
+            UserId = request.userId
+        };
+
+        _mockDatabase.Setup(r => r.FindIfContactExitForThisUserAsync(request.PhoneNumber, request.userId))
+            .ReturnsAsync(false);
+        _mockDatabase.Setup(r => r.AddContactAsync(It.IsAny<Contact>()))
+            .ReturnsAsync(contact);
+
+        // Act
+        var response = await _contactImplementation.CreateContactAsync(request);
+
+        // Assert
+        Assert.Equal("Success", response.Message);
+        Assert.Equal(contact.Id, response.Id);
     }
-    
+
     [Fact]
     public async Task TestThatICan_tSaveTwoSameNumberInTheDatabase()
     {
-        _mockDatabase.SetupSequence(r => r.FindIfContactExitForThisUserAsync(
-                It.IsAny<string>(), 
-                It.IsAny<string>()
-            ))
+        // Arrange
+        var request = new AddContactRequest
+        {
+            FirstName = "John",
+            LastName = "Smith",
+            Email = "johnsmith@gmail.com",
+            PhoneNumber = "0123456789",
+            userId = "1"
+        };
+
+        var contact = new Contact
+        {
+            Id = "123",
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PhoneNumber = request.PhoneNumber,
+            UserId = request.userId
+        };
+
+        _mockDatabase.SetupSequence(r => r.FindIfContactExitForThisUserAsync(request.PhoneNumber, request.userId))
             .ReturnsAsync(false)
             .ReturnsAsync(true);
-        var addContactResponse = AddContactResponse();
-        string expected = "Success";
-        Assert.Equal(addContactResponse.Result.Message,expected);
-        await Assert.ThrowsAsync<ArgumentException>(() => AddContactResponse());
+
+        _mockDatabase.Setup(r => r.AddContactAsync(It.IsAny<Contact>()))
+            .ReturnsAsync(contact);
+
+        // Act & Assert - First call should succeed
+        var firstResponse = await _contactImplementation.CreateContactAsync(request);
+        Assert.Equal("Success", firstResponse.Message);
+
+        // Second call should throw
+        await Assert.ThrowsAsync<ArgumentException>(() => _contactImplementation.CreateContactAsync(request));
     }
 
     [Fact]
     public async Task TestThatICanGetUserContact()
-    {  
-        var addContactResponse = AddContactResponse();
-        string expected = "Success";
-        Assert.Equal(addContactResponse.Result.Message,expected);
-        FindContactRequest request = new FindContactRequest();
-        request.UserId = "1";
-        request.id = addContactResponse.Result.Id;
-        _mockDatabase.Setup(r => r.FindContactByIdAndUserIdAsync(
-            addContactResponse.Result.Id, 
-            addContactResponse.Result.UserId
-        )).ReturnsAsync(addContactResponse);
-        FindContactResponse findContactResponse = await _contactImplementation.GetContactByIdAndUserId(request);
-        Assert.NotNull(findContactResponse);
-    }
-
-    private async Task<AddContactResponse> AddContactResponse()
     {
-        AddContactRequest request = new AddContactRequest();
-        request.FirstName = "John";
-        request.LastName = "Smith";
-        request.Email = "johnsmith@gmail.com";
-        request.PhoneNumber = "0123456789";
-        request.userId = "1";
-        AddContactResponse response = await _contactImplementation.CreateContactAsync(request);
-        return response;
+        // Arrange
+        var request = new AddContactRequest
+        {
+            FirstName = "John",
+            LastName = "Smith",
+            Email = "johnsmith@gmail.com",
+            PhoneNumber = "0123456789",
+            userId = "1"
+        };
+
+        var contact = new Contact
+        {
+            Id = "123",
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PhoneNumber = request.PhoneNumber,
+            UserId = request.userId
+        };
+
+        _mockDatabase.Setup(r => r.FindIfContactExitForThisUserAsync(request.PhoneNumber, request.userId))
+            .ReturnsAsync(false);
+        _mockDatabase.Setup(r => r.AddContactAsync(It.IsAny<Contact>()))
+            .ReturnsAsync(contact);
+
+        // Create the contact
+        var addResponse = await _contactImplementation.CreateContactAsync(request);
+        Assert.Equal("Success", addResponse.Message);
+
+        // Setup find method
+        _mockDatabase.Setup(r => r.FindContactByIdAndUserIdAsync(contact.Id, contact.UserId))
+            .ReturnsAsync(contact);
+
+        var findRequest = new FindContactRequest
+        {
+            UserId = contact.UserId,
+            Id = contact.Id
+        };
+
+        // Act
+        var findResponse = await _contactImplementation.GetContactByIdAndUserId(findRequest);
+
+        // Assert
+        // Assert.NotNull(findResponse);
+        Assert.Equal(contact.Id, findResponse.Id);
+        // Assert.Equal(contact.FirstName, findResponse.FirstName);
+        // Assert.Equal(contact.LastName, findResponse.LastName);
+        // Assert.Equal(contact.Email, findResponse.Email);
+        // Assert.Equal(contact.PhoneNumber, findResponse.PhoneNumber);
     }
-    
 }
