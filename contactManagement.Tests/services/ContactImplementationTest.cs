@@ -48,10 +48,8 @@ public class ContactImplementationTest
         _mockDatabase.Setup(r => r.AddContactAsync(It.IsAny<Contact>()))
             .ReturnsAsync(contact);
 
-        // Act
         var response = await _contactImplementation.CreateContactAsync(request);
-
-        // Assert
+        
         Assert.Equal("Success", response.Message);
         Assert.Equal(contact.Id, response.Id);
     }
@@ -59,7 +57,6 @@ public class ContactImplementationTest
     [Fact]
     public async Task TestThatICan_tSaveTwoSameNumberInTheDatabase()
     {
-        // Arrange
         var request = new AddContactRequest
         {
             FirstName = "John",
@@ -85,12 +82,10 @@ public class ContactImplementationTest
 
         _mockDatabase.Setup(r => r.AddContactAsync(It.IsAny<Contact>()))
             .ReturnsAsync(contact);
-
-        // Act & Assert - First call should succeed
+        
         var firstResponse = await _contactImplementation.CreateContactAsync(request);
         Assert.Equal("Success", firstResponse.Message);
-
-        // Second call should throw
+        
         await Assert.ThrowsAsync<ArgumentException>(() => _contactImplementation.CreateContactAsync(request));
     }
 
@@ -122,11 +117,9 @@ public class ContactImplementationTest
         _mockDatabase.Setup(r => r.AddContactAsync(It.IsAny<Contact>()))
             .ReturnsAsync(contact);
 
-        // Create the contact
         var addResponse = await _contactImplementation.CreateContactAsync(request);
         Assert.Equal("Success", addResponse.Message);
 
-        // Setup find method
         _mockDatabase.Setup(r => r.FindContactByIdAndUserIdAsync(contact.Id, contact.UserId))
             .ReturnsAsync(contact);
 
@@ -135,16 +128,13 @@ public class ContactImplementationTest
             UserId = contact.UserId,
             Id = contact.Id
         };
-
-        // Act
+        
         var findResponse = await _contactImplementation.GetContactByIdAndUserId(findRequest);
-
-        // Assert
-        // Assert.NotNull(findResponse);
+        
         Assert.Equal(contact.Id, findResponse.Id);
-        // Assert.Equal(contact.FirstName, findResponse.FirstName);
-        // Assert.Equal(contact.LastName, findResponse.LastName);
-        // Assert.Equal(contact.Email, findResponse.Email);
-        // Assert.Equal(contact.PhoneNumber, findResponse.PhoneNumber);
+        Assert.Equal(contact.FirstName, findResponse.FirstName);
+        Assert.Equal(contact.LastName, findResponse.LastName);
+        Assert.Equal(contact.Email, findResponse.Email);
+        Assert.Equal(contact.PhoneNumber, findResponse.PhoneNumber);
     }
 }
